@@ -26,8 +26,22 @@ To build and run this application, you will need the following dependencies:
 
 To install the required dependencies, use the following command:
 
+- Linux
+
 ```bash
 sudo apt update && sudo apt install -y qtbase5-dev libqt5websockets5-dev g++ make
+```
+
+- Mac
+
+Utilize Homebrew to install
+
+
+```bash
+brew update
+brew install qt5
+brew install qt-websockets
+brew install hmake
 ```
 
 
