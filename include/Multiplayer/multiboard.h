@@ -233,7 +233,7 @@ class MultiBoard : public QWidget {
   /** @brief Number of blue team cards left */
   int blueCardsRemaining;
 
-  // Number of guesses logic
+  // Limit guess 
   int currentGuesses;
   int maxGuesses;
 

@@ -14,6 +14,10 @@ MultiBoard::MultiBoard(bool isHost, QWebSocketServer *server, QList<QWebSocket *
       m_turnOrder{"red_spymaster", "red_operative", "blue_spymaster", "blue_operative"}
 {
     
+    // Iniitalize guess counters
+    currentGuesses = 0;
+    maxGuesses = 0;
+
     // Ensure server and client pointers are valid
     if (!m_server && !m_clientSocket)
     {
@@ -753,6 +757,11 @@ void MultiBoard::updateTurnDisplay()
     QString team = parts[0];
     QString role = parts[1];
 
+    // Reset current guesses
+    if (role == "operative") {
+        currentGuesses = 0;
+    }
+
     // Update turn label
     m_turnLabel->setText(QString("Current Turn: %1 %2")
                              .arg(team.toUpper())
@@ -816,113 +825,130 @@ void MultiBoard::handleTileClick()
 
 void MultiBoard::revealTile(int row, int col, bool broadcast)
 {
-    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE || gameGrid[row][col].revealed)
+
+    // Check if the tile is within the grid
+    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
         return;
 
-    QString currentPhase = m_turnOrder[m_currentTurnIndex];
-    QStringList parts = currentPhase.split("_");
-    QString currentRole = parts[1];
-    if (broadcast && isMyTurn() && currentRole == "operative")
-    {
-        currentGuesses++;
+    // Check if its the host, or if broadcasting is disabled, this is required so the message is not sent twice
+    if(m_isHost || !broadcast) {
+    // Add the hint to the chat box
+    QString currOperativeName = (m_currentTurnIndex == 1 || m_currentTurnIndex == 2) ? "Red Operative" : "Blue Operative";
+    QString teamColor = (m_currentTurnIndex == 1 || m_currentTurnIndex == 2) ? "Red" : "Blue";
+    QString hintMessage = currOperativeName + " taps " + gameGrid[row][col].word;
+    chatBox->addSystemMessage(hintMessage, (m_currentTurnIndex == RED_OP || m_currentTurnIndex == BLUE_SPY) ? ChatBox::RED_TEAM : ChatBox::BLUE_TEAM);
     }
 
-    if (m_isHost || !broadcast)
-    {
-        QString currOperativeName = (m_currentTurnIndex == 1) ? "Red Operative" : "Blue Operative";
-        QString teamColor = (m_currentTurnIndex == 1) ? "Red" : "Blue";
-        QString hintMessage = currOperativeName + " taps " + gameGrid[row][col].word;
-        chatBox->addSystemMessage(hintMessage, (m_currentTurnIndex == RED_OP) ? ChatBox::RED_TEAM : ChatBox::BLUE_TEAM);
-    }
+    // Setting the tile as revealed and disabling it
 
     gameGrid[row][col].revealed = true;
     QPushButton *btn = m_tiles.at(row * GRID_SIZE + col);
     btn->setText("");
     btn->setEnabled(false);
 
-    users = User::instance();
-
     QString currentTeam = parts[0];
+    QString currentRole = parts[1];
 
-    if (!m_isHost && broadcast)
-    {
+    //If it is the broadcaster, send the message to the server
+
+    // Broadcast the reveal
+    if (!m_isHost && broadcast) {
         m_clientSocket->sendTextMessage(QString("REVEAL:%1,%2").arg(row).arg(col));
     }
-    else if (m_isHost && broadcast)
+    //If it is the host, send the message to all clients
+    else
     {
         sendToAll(QString("REVEAL:%1,%2").arg(row).arg(col));
     }
-
-    bool correctCard = false;
+    // Set card color based on type
     switch (gameGrid[row][col].type)
     {
+        qDebug() << "Type: " << gameGrid[row][col].type;
+
+    // Set card color based on type
+
     case RED_TEAM:
+
         btn->setStyleSheet("background-color: #ff9999; color: black");
-        if (currentTeam == "red")
-            correctCard = true;
         if (m_isHost)
         {
+            // Decrement the number of red cards remaining
             redCardsRemaining--;
             sendToAll(QString("RED"));
+
+
+            // Check if the red team has won
+            if (redCardsRemaining == 0)
+            {
+                endGame("Red team wins!");
+            }
         }
         break;
     case BLUE_TEAM:
         btn->setStyleSheet("background-color: #9999ff; color: black");
-        if (currentTeam == "blue")
-            correctCard = true;
+        
         if (m_isHost)
         {
+            // Decrement the number of blue cards remaining
             blueCardsRemaining--;
             sendToAll(QString("BLUE"));
+            
+            // Check if the blue team has won
+            
+            if (blueCardsRemaining == 0)
+            {
+                endGame("Blue team wins!");
+            }
         }
         break;
     case NEUTRAL:
+        // Set card color based on type
         btn->setStyleSheet("background-color: #f0f0f0; color: black");
         break;
     case ASSASSIN:
+        // Set card color based on type
         btn->setStyleSheet("background-color: #333333; color: white;");
+
+        // Send winning signal
+        if (currentPhase == "red_operative" || currentPhase == "blue_spymaster")
+        {
+            endGame("Blue team wins!");
+        }
+        else
+        {
+            endGame("Red team wins!");
+        }
         break;
     }
+    // Initial Broadcast
+    if(broadcast) {
+    // Check if correct guess
+    bool correctCard = false;
 
-    if (broadcast && isMyTurn() && currentRole == "operative")
+    // Check if the guess was correct
+    if (currentTeam == "red" && gameGrid[row][col].type == RED_TEAM)
     {
-        if (maxGuesses > 0)  // Check if limited guesses
-        {
-            int effectiveMax = correctCard ? maxGuesses : (maxGuesses - 1);
-            if (currentGuesses >= effectiveMax)
-            {
-                qDebug() << "Maximum guesses reached (" << currentGuesses << "/" << effectiveMax << ")";
-                if (m_isHost)
-                {
-                    chatBox->limitReachedMessage();
-                    advanceTurn();
-                }
-                else
-                {
-                    m_clientSocket->sendTextMessage("TURN_ADVANCE");
-                }
-                return;
-            }
-        }
-
-        if (!correctCard)  // Advance turn on incorrect guess
-        {
-            qDebug() << "Incorrect guess";
-            if (m_isHost)
-            {
-                advanceTurn();
-            }
-            else
-            {
-                m_clientSocket->sendTextMessage("TURN_ADVANCE");
-            }
-        }
+        correctCard = true;
+    }
+    else if (currentTeam == "blue" && gameGrid[row][col].type == BLUE_TEAM)
+    {
+        correctCard = true;
+    }
+    // If not correct, advance turn
+    if (!correctCard)
+    {
+        qDebug() << "Incorrect guess";
+        advanceTurn();
+        return;
+    }
+    }
+    else if (currentRole == "operative")
+    {
+        // Only allow another guess if operative guessed correctly
+        btn->setEnabled(false);
     }
 
-    if (m_isHost)
-    {
-        checkGameEnd();
-    }
+    
 }
 
 void MultiBoard::endGame(const QString &message)
