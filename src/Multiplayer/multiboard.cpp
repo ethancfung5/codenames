@@ -883,6 +883,8 @@ void MultiBoard::revealTile(int row, int col, bool broadcast)
             // Decrement the number of red cards remaining
             redCardsRemaining--;
             sendToAll(QString("RED"));
+            redCardText->setText("Red Cards Remaining: " + QString::number(redCardsRemaining));
+
 
 
             // Check if the red team has won
@@ -900,6 +902,7 @@ void MultiBoard::revealTile(int row, int col, bool broadcast)
             // Decrement the number of blue cards remaining
             blueCardsRemaining--;
             sendToAll(QString("BLUE"));
+            blueCardText->setText("Blue Cards Remaining: " + QString::number(blueCardsRemaining));
             
             // Check if the blue team has won
             

@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv); // Initialize the Qt application
-
+    app.setWindowIcon(QIcon(":/images/logo.png"));  // Use a resource path or absolute path
     // Force dark mode by setting the application's palette to dark
     QPalette darkPalette;
     darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));      // Dark background
