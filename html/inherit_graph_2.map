@@ -1,7 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,112,57"/>
-<area shape="rect" id="Node000001" href="$classMainWindow.html" title="The main application window." alt="" coords="160,5,256,32"/>
-<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="126,30,159,24,160,29,127,35"/>
-<area shape="rect" id="Node000002" href="$classTutorial.html" title="The tutorial window that guides users through the game mechanics." alt="" coords="176,56,240,83"/>
-<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="127,53,175,61,175,67,126,58"/>
-</map>
