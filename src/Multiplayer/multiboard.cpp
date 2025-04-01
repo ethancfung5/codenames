@@ -846,20 +846,25 @@ void MultiBoard::revealTile(int row, int col, bool broadcast)
     btn->setText("");
     btn->setEnabled(false);
 
+    QString currentPhase = m_turnOrder[m_currentTurnIndex];
+    QStringList parts = currentPhase.split("_");
     QString currentTeam = parts[0];
     QString currentRole = parts[1];
 
-    //If it is the broadcaster, send the message to the server
+    // Increment currentGuesses if it's the operative's turn
+    if (broadcast && isMyTurn() && currentRole == "operative") {
+        currentGuesses++;
+    }
 
     // Broadcast the reveal
     if (!m_isHost && broadcast) {
         m_clientSocket->sendTextMessage(QString("REVEAL:%1,%2").arg(row).arg(col));
     }
     //If it is the host, send the message to all clients
-    else
-    {
+    else if (m_isHost){
         sendToAll(QString("REVEAL:%1,%2").arg(row).arg(col));
     }
+
     // Set card color based on type
     switch (gameGrid[row][col].type)
     {
@@ -906,46 +911,24 @@ void MultiBoard::revealTile(int row, int col, bool broadcast)
         btn->setStyleSheet("background-color: #f0f0f0; color: black");
         break;
     case ASSASSIN:
-        // Set card color based on type
         btn->setStyleSheet("background-color: #333333; color: white;");
-
-        // Send winning signal
-        if (currentPhase == "red_operative" || currentPhase == "blue_spymaster")
-        {
-            endGame("Blue team wins!");
-        }
-        else
-        {
-            endGame("Red team wins!");
-        }
-        break;
+            endGame(currentPhase == "red_operative" || currentPhase == "blue_spymaster" 
+                   ? "Blue team wins!" : "Red team wins!");
+            return;
     }
     // Initial Broadcast
     if(broadcast) {
-    // Check if correct guess
-    bool correctCard = false;
+    bool isCorrectCard = (currentTeam == "red" && gameGrid[row][col].type == RED_TEAM) ||
+                            (currentTeam == "blue" && gameGrid[row][col].type == BLUE_TEAM);
 
-    // Check if the guess was correct
-    if (currentTeam == "red" && gameGrid[row][col].type == RED_TEAM)
-    {
-        correctCard = true;
-    }
-    else if (currentTeam == "blue" && gameGrid[row][col].type == BLUE_TEAM)
-    {
-        correctCard = true;
-    }
-    // If not correct, advance turn
-    if (!correctCard)
-    {
-        qDebug() << "Incorrect guess";
-        advanceTurn();
-        return;
-    }
-    }
-    else if (currentRole == "operative")
-    {
-        // Only allow another guess if operative guessed correctly
-        btn->setEnabled(false);
+        if (!isCorrectCard || (maxGuesses > 0 && currentGuesses >= maxGuesses)) {
+            if (!isCorrectCard) {
+                qDebug() << "Incorrect guess";
+            } else {
+                qDebug() << "Correct guess but reached max guesses";
+            }
+            advanceTurn();
+        }
     }
 
     
