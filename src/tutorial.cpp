@@ -97,10 +97,7 @@ Tutorial::Tutorial(QWidget *parent)
     // Connect the button click
     connect(continueButton, &QPushButton::clicked, this, &Tutorial::onContinueClicked);
 
-    // Add this in your constructor or somewhere to test
-    QDir resourceDir(":/images");
-    qDebug() << "Available images in resources:";
-    qDebug() << resourceDir.entryList();
+
 }
 
 void Tutorial::updateContinueButtonPosition() {

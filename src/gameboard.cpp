@@ -88,7 +88,6 @@ void GameBoard::loadWordsFromFile() {
             wordList.append(line);
         }
     }
-    qDebug() << "Loaded" << wordList.size() << "words";
     file.close();
 }
 
@@ -204,7 +203,6 @@ void GameBoard::setupUI() {
             cards[i][j] = new QPushButton(gameGrid[i][j].word);
             cards[i][j]->setFixedSize(120, 80);
             gridLayout->addWidget(cards[i][j], i, j);
-            qDebug() << "card at" << i << j << "set to" << gameGrid[i][j].word;
 
             // Set card styles
             switch (gameGrid[i][j].type) {
