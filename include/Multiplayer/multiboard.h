@@ -234,7 +234,9 @@ class MultiBoard : public QWidget {
   int blueCardsRemaining;
 
   // Limit guess 
+  /** @brief Current number of guesses */
   int currentGuesses;
+  /** @brief Maximum number of allowed guesses */
   int maxGuesses;
 
   /**
