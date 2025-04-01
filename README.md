@@ -40,8 +40,7 @@ Utilize Homebrew to install
 ```bash
 brew update
 brew install qt5
-brew install qt-websockets
-brew install hmake
+brew install make
 ```
 
 
