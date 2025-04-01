@@ -515,7 +515,10 @@ void MultiBoard::processMessage(const QString &message)
     {
         advanceTurn();
     }
-
+    else if (message.startsWith("END_GAME:")) {
+        QString data = message.section(':', 1);
+        endGame(data);
+    }
     // Spymaster Turn Advance Processor
 
     if (message.startsWith("SPYMASTER_TURN_ADVANCE:") && m_isHost)
@@ -1103,5 +1106,6 @@ void MultiBoard::socketDisconnected()
     {
         m_clients.removeAll(client);
         client->deleteLater();
+        endGame("No Winner, Player Disconnected");
     }
 }

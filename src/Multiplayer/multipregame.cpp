@@ -385,6 +385,7 @@ void MultiPregame::gameStarted(bool isHost, QWebSocketServer *server,
     QString currentUsername = m_isHost ? m_usernames[nullptr] : m_username;
     MultiBoard *gameBoard = new MultiBoard(isHost, server, clients, clientSocket, playerRoles, currentUsername);
     connect(gameBoard, &MultiBoard::goBack, this, &MultiPregame::showPregame);
+
     // Transfer ownership to MultiBoard
     if (isHost)
     {
@@ -395,6 +396,7 @@ void MultiPregame::gameStarted(bool isHost, QWebSocketServer *server,
             {
                 client->setParent(gameBoard);
                 connect(client, &QWebSocket::textMessageReceived, gameBoard, &MultiBoard::processMessage);
+                connect(client, &QWebSocket::disconnected, gameBoard, &MultiBoard::socketDisconnected);
             }
         }
     }
