@@ -6,7 +6,7 @@ Codenames is a multiplayer word association game where two teams compete to find
 
 Our game allows you to run on a single device or 4 devices depending.
 
-In multiplayer, Qt Websockets is required to play, which gaul does not have.
+In multiplayer, Qt Websockets is required to play.
 
 To allow our game to run on gaul we have a version without multiplayer at
 
@@ -17,7 +17,8 @@ https://github.com/thomasdkv/codenames-without-multiplayer
 
 #### Network Requirements for Online Play
 
-The network you are using must allow websocket traffic. In our testing, the uwosecure-v2 and eduroam wifi's don't have it configured, but something like a cellular hotspot or home wifi allows for it.
+The network you are using must allow websocket traffic. In our testing, school wifis don't have it configured, 
+but something like a cellular hotspot or home wifi allows for it.
 
 Another solution is to utilize tunnels services (e.g. ngrok) to allow external devices to connect to your server
 
@@ -59,7 +60,7 @@ brew install make
 Clone the repository or download the project files:
 
 ```bash
-git clone https://github.com/AshtonF04/codenames.git
+git clone https://github.com/ethancfung5/codenames.git
 cd codenames
 ```
 
